@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.21.0/phaser.min.js"></script>
+		<title></title>
+	</head>
+	<body>
+		<div id="one_tap" style="text-align: center;"></div>
+		<script>
+		  var bg;
+		  var hero;
+		  var heroShadow;
+		  var slime;
+		  var slimeSpeed = 1;
+		  var heroAttacking = false;
+		  var score = 0;
+		  var scoreText;
+		  var isGameOver = false;
+          var levelComp = false;
+          var levelend = false;
+          var levelOver;
+            
+		  function preload() {
+		    this.load.atlas(
+		      'atlas',
+		      'atlas.png',
+		      'atlas.json'
+		    );
+            Pause = this.add.sprite(0, 0, 'atlas', 'next_level_0'); 
+		  }
+
+		  function create() {
+		    this.anims.create({ key: 'hero_idle',    frames: this.anims.generateFrameNames('atlas', { prefix: 'hero/hero_idle_',     end: 5}), repeat: -1 });
+		    this.anims.create({ key: 'hero_attack',  frames: this.anims.generateFrameNames('atlas', { prefix: 'hero/hero_attack_',   end: 5}), repeat: -1 });
+		    this.anims.create({ key: 'slime_attack', frames: this.anims.generateFrameNames('atlas', { prefix: 'slime/slime_idle_', end: 5}), repeat: -1 });
+            this.anims.create({ key: 'bat_attack', frames: this.anims.generateFrameNames('atlas', { prefix: 'bat/bat_attack_', end: 5}), repeat: -1 });
+		    this.anims.create({ key: 'poof', frames: this.anims.generateFrameNames('atlas', { prefix: 'vfx/poof_', end: 5}), repeat: -1 });
+              
+            
+
+		    // ниже понятно почему нужна математика
+		    bg = this.add.sprite(0, 0, 'atlas', 'bg_level_0');
+		    bg.x = bg.width / 2;
+		    bg.y = bg.height / 2;
+		    
+		    hero = this.add.sprite(0, 0, 'hero');
+		    hero.x = bg.width / 2;
+		    hero.y = bg.height / 2 + hero.height;
+            hero.scale *=1
+		    
+		    heroShadow = this.add.sprite(0, 0, 'atlas', 'hero_shadow');
+		    heroShadow.x = bg.width / 2;
+		    heroShadow.y = hero.y + hero.height + heroShadow.height / 2;
+            
+            slime = this.add.sprite(0, hero.y + 10, 'slime');
+            slime.play('slime_attack');
+              
+           
+            
+		    scoreText = this.add.text(20, 15, 'Monsters killed: 0');
+		    
+		    heroIdle();
+		    this.input.on("pointerdown", heroAttack, this);
+              
+		  }
+
+		  function update() {
+            slime.x += slime.flipX ? -slimeSpeed : slimeSpeed;
+            slimeSpeed += 0.1;
+     
+		    if (isGameOver) {
+		      return;
+            }
+            
+            if (slime.anims.getCurrentKey() == 'poof') {
+              if (slime.anims.getProgress() < 1) {
+                return;
+              }
+              
+              slime.destroy();
+		      slime = this.add.sprite(0, hero.y + 10, 'slime');
+		      slime.flipX = Math.random() > 0.5;
+		      // наверно не стоит писать такие конструкции
+		      slime.x = slime.flipX ? bg.x * 2 : 0;
+		      slime.play('slime_attack');
+            }
+            
+            if (Math.abs(hero.x - slime.x) < 110 && hero.flipX == slime.flipX && heroAttacking) {
+              score = score + 1;
+              scoreText.setText('Monsters killed: ' + score );
+              slimeSpeed = score / 5;
+              slime.play('poof', true);
+            }
+
+            if (Math.abs(hero.x - slime.x) < 20) {
+              isGameOver = true;
+              levelend = true;
+              hero.play('poof', true);
+              var game = this;
+              setTimeout(function() {
+                var gameOver = game.add.text(0, 0, 'You lost!', {fontSize: 40, fontStyle: 'bold',});
+                gameOver.x = bg.x - gameOver.width / 2;
+                gameOver.y = bg.y;
+                hero.destroy();
+                heroShadow.destroy();
+              }, 250);
+            }
+              
+              if (score > 10) {
+              isGameOver = true;
+              var game = this;
+              setTimeout(function() {
+                var levelOver = game.add.text(0, 0, 'You won!', {fontSize: 30, fontStyle: 'bold'});
+                levelOver.x = bg.x - levelOver.width / 2;
+                levelOver.y = bg.y;
+                this.tablet.play;
+                slime.destroy;
+              }, 250);
+            }
+              
+          }
+
+		  function heroIdle() {
+		    hero.play('hero_idle');
+		    heroAttacking = false;
+		  }
+          function resbut(tap) {
+              
+          }
+
+		  function heroAttack(tap) {
+		    if (heroAttacking) {
+		      return;
+		    }
+		    heroAttacking = true;
+		    hero.flipX = tap.downX > bg.x;
+		    hero.play('hero_attack', true);
+		    setTimeout(heroIdle, 350);
+		  }    
+            
+          function gameRestart(tap){
+              if (isGameOver = true) {
+                  hero.comeback;
+                  slime.comeback;
+                  level
+              }
+          }
+            
+
+		  new Phaser.Game({
+		    scene: {
+		      preload: preload,
+		      create: create,
+		      update: update,
+		    },
+		    physics: { default: 'arcade' },
+		    parent: 'one_tap',
+		    width: 360,
+		    height: 480,
+		    backgroundColor: '#ffffff',
+		  });
+		</script>
+	</body>
+</html>
